@@ -87,8 +87,7 @@ architecture Behavioral of elevator_controller_fsm is
     -- variable type can take on. Now you can assign a signal as 
     -- "sm_floor" the same way you'd assign a signal as std_logic
 	-- how would you modify this to go up to 15 floors?
-	type sm_floor is (s_floor1, s_floor2, s_floor3, s_floor4, s_floor5, s_floor6, s_floor7, s_floor8,
-	s_floor9, s_floor10, s_floor11, s_floor12, s_floor13, s_floor14, s_floor15, s_floor16 );
+	type sm_floor is (s_floor1, s_floor2, s_floor3, s_floor4);
 	
 	-- Here you create variables that can take on the values defined above. Neat!	
 	signal f_Q, f_Q_next: sm_floor;
@@ -97,74 +96,39 @@ begin
 
 	-- CONCURRENT STATEMENTS ------------------------------------------------------------------------------
  -- Next State Logic
-       f_Q_next <= s_floor2 when (i_up_down = '1' and f_Q = s_floor1) else -- going up
-                   s_floor3 when (i_up_down = '1' and f_Q = s_floor2) else
-                   s_floor4 when (i_up_down = '1' and f_Q = s_floor3) else
-                   s_floor5 when (i_up_down = '1' and f_Q = s_floor4) else
-                   s_floor6 when (i_up_down = '1' and f_Q = s_floor5) else
-                   s_floor7 when (i_up_down = '1' and f_Q = s_floor6) else
-                   s_floor8 when (i_up_down = '1' and f_Q = s_floor7) else
-                   s_floor9 when (i_up_down = '1' and f_Q = s_floor8) else
-                   s_floor10 when (i_up_down = '1' and f_Q = s_floor9) else
-                   s_floor11 when (i_up_down = '1' and f_Q = s_floor10) else
-                   s_floor12 when (i_up_down = '1' and f_Q = s_floor11) else
-                   s_floor13 when (i_up_down = '1' and f_Q = s_floor12) else
-                   s_floor14 when (i_up_down = '1' and f_Q = s_floor13) else
-                   s_floor15 when (i_up_down = '1' and f_Q = s_floor14) else
-                   s_floor16 when (i_up_down = '1' and f_Q = s_floor15) else
-                   
-                   
-                   s_floor1 when (i_up_down = '0' and f_Q = s_floor2) else -- going down
-                   s_floor2 when (i_up_down = '0' and f_Q = s_floor3) else
-                   s_floor3 when (i_up_down = '0' and f_Q = s_floor4) else
-                   s_floor4 when (i_up_down = '0' and f_Q = s_floor5) else
-                   s_floor5 when (i_up_down = '0' and f_Q = s_floor6) else
-                   s_floor6 when (i_up_down = '0' and f_Q = s_floor7) else
-                   s_floor7 when (i_up_down = '0' and f_Q = s_floor8) else
-                   s_floor8 when (i_up_down = '0' and f_Q = s_floor9) else
-                   s_floor9 when (i_up_down = '0' and f_Q = s_floor10) else
-                   s_floor10 when (i_up_down = '0' and f_Q = s_floor11) else
-                   s_floor11 when (i_up_down = '0' and f_Q = s_floor12) else
-                   s_floor12 when (i_up_down = '0' and f_Q = s_floor13) else
-                   s_floor13 when (i_up_down = '0' and f_Q = s_floor14) else
-                   s_floor14 when (i_up_down = '0' and f_Q = s_floor15) else
-                   s_floor15 when (i_up_down = '0' and f_Q = s_floor16) else
-                   f_Q; -- default case
-  -- four bits 0000 is 16
-	-- Output logic
-    with f_Q select
-        o_floor <= "0001" when s_floor1,
-                   "0010" when s_floor2,
-                   "0011" when s_floor3,
-                   "0100" when s_floor4,
-                   "0101" when s_floor5,
-                   "0110" when s_floor6,
-                   "0111" when s_floor7,
-                   "1000" when s_floor8,
-                   "1001" when s_floor9,
-                   "1010" when s_floor10,
-                   "1011" when s_floor11,
-                   "1100" when s_floor12,
-                   "1101" when s_floor13,
-                   "1110" when s_floor14,
-                   "1111" when s_floor15,
-                   "0000" when s_floor16,
-                   "0010" when others; -- default is floor 2
+      -- Next State Logic
+     f_Q_next <= s_floor2 when (f_Q = s_floor1) and (i_up_down = '1') else -- going up
+                 s_floor3 when (f_Q = s_floor2) and (i_up_down = '1') else -- going up
+                 s_floor4 when (f_Q = s_floor3) and (i_up_down = '1') else -- going up
+                 s_floor3 when (f_Q = s_floor4) and (i_up_down = '0') else -- going down
+                 s_floor2 when (f_Q = s_floor3) and (i_up_down = '0') else -- going down
+                 s_floor1 when (f_Q = s_floor2) and (i_up_down = '0') else -- going down
+                 f_Q; -- default case
+   
+     -- Output logic
+     with f_Q select
+         o_floor <= "0001" when s_floor1,
+                 "0011" when s_floor3,
+                 "0100" when s_floor4,
+                 "0010" when others; -- default is floor 2
 	
 	-------------------------------------------------------------------------------------------------------
 	
 	-- PROCESSES ------------------------------------------------------------------------------------------	
 	-- State memory ------------
-	register_proc : process (i_clk)
+		register_proc : process (i_clk)
     begin
-        if (rising_edge(i_clk)) then 
-            if (i_stop = '0') then 
+        if i_clk = '1' then
+            if i_reset = '1' then
+                f_Q <= s_floor2;
+            elsif i_stop = '0' then
                 f_Q <= f_Q_next;
-            elsif (i_stop = '0') then 
-                f_Q <= f_Q;
-            end if;   
-         end if;
-	end process register_proc;	
+            end if;
+        end if;
+        
+    
+    end process register_proc;    
+    
 	
 	-------------------------------------------------------------------------------------------------------
 	
